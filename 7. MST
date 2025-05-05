@@ -1,0 +1,118 @@
+#include <iostream>
+using namespace std;
+
+class Graph {
+public:
+    int V;
+    int adjMatrix[100][100];
+
+    // Constructor to initialize graph
+    Graph(int vertices) {
+        V = vertices;
+        for (int i = 0; i < V; i++) {
+            for (int j = 0; j < V; j++) {
+                adjMatrix[i][j] = 0;
+            }
+        }
+    }
+
+    // Function to add edge between two vertices
+    void addEdge(int u, int v, int weight) {
+        adjMatrix[u][v] = weight;
+        adjMatrix[v][u] = weight;  // Since graph is undirected
+    }
+
+    // Function to print adjacency matrix
+    void printGraph() {
+        for (int i = 0; i < V; i++) {
+            for (int j = 0; j < V; j++) {
+                cout << adjMatrix[i][j] << " ";
+            }
+            cout << endl;
+        }
+    }
+
+    // Prim's algorithm implementation
+    void primMST() {
+        int parent[100];    // Stores MST structure
+        int key[100];       // Key values used to pick minimum weight edge
+        bool visited[100];  // To track visited vertices
+        const int INF = 999;
+
+        // Initialize all keys and visited
+        for (int i = 0; i < V; i++) {
+            key[i] = INF;
+            visited[i] = false;
+            parent[i] = -1;
+        }
+
+        key[0] = 0;  // Start from vertex 0
+
+        for (int count = 0; count < V - 1; count++) {
+            int u = minKey(key, visited);
+            visited[u] = true;
+
+            for (int v = 0; v < V; v++) {
+                if (adjMatrix[u][v] && !visited[v] && adjMatrix[u][v] < key[v]) {
+                    key[v] = adjMatrix[u][v];
+                    parent[v] = u;
+                }
+            }
+        }
+
+        displayMST(parent);
+    }
+
+private:
+    // Helper to find the vertex with minimum key value
+    int minKey(int key[], bool visited[]) {
+        int min = 999, min_index = -1;
+        for (int v = 0; v < V; v++) {
+            if (!visited[v] && key[v] < min) {
+                min = key[v];
+                min_index = v;
+            }
+        }
+        return min_index;
+    }
+
+    // Display MST
+    void displayMST(int parent[]) {
+        int totalCost = 0;
+        cout << "Edge \tWeight" << endl;
+        for (int i = 1; i < V; i++) {
+            if (parent[i] != -1) {
+                cout << parent[i] << " - " << i << " \t" << adjMatrix[i][parent[i]] << endl;
+                totalCost += adjMatrix[i][parent[i]];
+            }
+        }
+        cout << "Total cost of MST: " << totalCost << endl;
+    }
+};
+
+int main() {
+    int N;
+    cout << "Enter the number of vertices: ";
+    cin >> N;
+
+    Graph g(N);
+
+    int E;
+    cout << "Enter the number of edges: ";
+    cin >> E;
+
+    for (int i = 0; i < E; i++) {
+        int u, v, weight;
+        cout << "Enter edge (u v weight): ";
+        cin >> u >> v >> weight;
+        g.addEdge(u, v, weight);
+    }
+
+    cout << "\nAdjacency Matrix of the Graph:\n";
+    g.printGraph();
+
+    cout << "\nMinimum Spanning Tree (MST) using Prim's Algorithm:\n";
+    g.primMST();
+
+    return 0;
+}
