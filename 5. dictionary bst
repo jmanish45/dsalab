@@ -1,0 +1,198 @@
+#include<iostream>
+using namespace std;
+
+class node {
+public:
+    node *leftc;
+    string word;
+    string meaning;
+    node *rightc;
+};
+
+class BST {
+private:
+    node *temp;
+    int comparisons;
+
+public:
+    node *root;
+
+    BST() {
+        root = NULL;
+        comparisons = 0;
+    }
+
+    void create() {
+        char ch;
+        do {
+            temp = new node;
+            cout << "\nEnter the keyword: ";
+            cin >> temp->word;
+            cout << "Enter the meaning: ";
+            cin >> temp->meaning;
+            temp->leftc = temp->rightc = NULL;
+
+            if (root == NULL)
+                root = temp;
+            else
+                insert(root, temp);
+
+            cout << "\nDo you want to continue (y/n): ";
+            cin >> ch;
+        } while (ch == 'y' || ch == 'Y');
+    }
+
+    void insert(node *root, node *temp) {
+        if (temp->word < root->word) {
+            if (root->leftc == NULL)
+                root->leftc = temp;
+            else
+                insert(root->leftc, temp);
+        } else {
+            if (root->rightc == NULL)
+                root->rightc = temp;
+            else
+                insert(root->rightc, temp);
+        }
+    }
+
+    void inorder(node *root) {
+        if (root != NULL) {
+            inorder(root->leftc);
+            cout << root->word << " : " << root->meaning << endl;
+            inorder(root->rightc);
+        }
+    }
+
+    void preorder(node *root) {
+        if (root != NULL) {
+            cout << root->word << " : " << root->meaning << endl;
+            preorder(root->leftc);
+            preorder(root->rightc);
+        }
+    }
+
+    void postorder(node *root) {
+        if (root != NULL) {
+            postorder(root->leftc);
+            postorder(root->rightc);
+            cout << root->word << " : " << root->meaning << endl;
+        }
+    }
+
+    void converse_inorder(node *root) {
+        if (root != NULL) {
+            converse_inorder(root->rightc);
+            cout << root->word << " : " << root->meaning << endl;
+            converse_inorder(root->leftc);
+        }
+    }
+
+    node* search(node* root, string key) {
+        if (root == NULL) {
+            cout << "Word not found!" << endl;
+            return NULL;
+        }
+
+        comparisons++;
+
+        if (key == root->word) {
+            cout << "Word found: " << root->word << " -> " << root->meaning << endl;
+            return root;
+        } else if (key < root->word) {
+            return search(root->leftc, key);
+        } else {
+            return search(root->rightc, key);
+        }
+    }
+
+    void modify(node* root, string key) {
+        node* res = search(root, key);
+        if (res != NULL) {
+            cout << "Enter new meaning for the word: ";
+            cin >> res->meaning;
+            cout << "Meaning updated!" << endl;
+        }
+    }
+
+    node* minValueNode(node* node) {
+        node* current = node;
+        while (current && current->leftc != NULL)
+            current = current->leftc;
+        return current;
+    }
+
+    node* deleteRec(node* root, string key) {
+        if (root == NULL)
+            return root;
+
+        if (key < root->word)
+            root->leftc = deleteRec(root->leftc, key);
+        else if (key > root->word)
+            root->rightc = deleteRec(root->rightc, key);
+        else {
+            if (root->leftc == NULL) {
+                node* temp = root->rightc;
+                delete root;
+                return temp;
+            } else if (root->rightc == NULL) {
+                node* temp = root->leftc;
+                delete root;
+                return temp;
+            }
+
+            node* temp = minValueNode(root->rightc);
+            root->word = temp->word;
+            root->meaning = temp->meaning;
+            root->rightc = deleteRec(root->rightc, temp->word);
+        }
+        return root;
+    }
+
+    void delete_node(string key) {
+        root = deleteRec(root, key);
+        cout << "Word deleted if it existed!" << endl;
+    }
+
+    void comparison(string key) {
+        comparisons = 0;
+        search(root, key);
+        cout << "Number of comparisons: " << comparisons << endl;
+    }
+};
+
+int main() {
+    BST B;
+    int choice;
+    string value;
+
+    while (1) {
+        cout << "\n----------------------------MENU----------------------------------" << endl;
+        cout << "1. Create and insert word\n2. Display in ascending order\n3. Display in descending order\n";
+        cout << "4. Postorder traversal\n5. Search a word\n6. Modify a word\n7. Delete a word\n";
+        cout << "8. Count comparisons in search\n9. Exit\n";
+        cout << "Enter your choice: ";
+        cin >> choice;
+
+        switch (choice) {
+            case 1:
+                B.create();
+                break;
+            case 2:
+                B.inorder(B.root);
+                break;
+            case 3:
+                B.converse_inorder(B.root);
+                break;
+            case 4:
+                B.postorder(B.root);
+                break;
+            case 5:
+                cout << "Enter the word to search: ";
+                cin >> value;
+                B.search(B.root, value);
+                break;
+            case 6:
+                cout << "Enter the word to modify: ";
+                cin >> value;
+                B.modify(B.root
