@@ -1,0 +1,196 @@
+#include<iostream>
+using namespace std;
+
+class node {
+public:
+    int data;
+    node* leftc;
+    node* rightc;
+};
+
+class binarytree {
+private:
+    node* temp;
+    int op;
+
+public:
+    node* root;
+    binarytree() {
+        root = NULL;
+    }
+
+    void create();
+    void insert(node*, node*);
+    void inorder(node*);
+    void preorder(node*);
+    void postorder(node*);
+    void search(node*, int);
+    int height(node*);
+    int findMin(node*);
+    node* mirror(node*);
+};
+
+void binarytree::create() {
+    int value;
+    do {
+        temp = new node;
+        cout << "Enter the value: ";
+        cin >> value;
+        temp->data = value;
+        temp->leftc = temp->rightc = NULL;
+
+        if (root == NULL)
+            root = temp;
+        else
+            insert(root, temp);
+
+        cout << "Enter 1 to insert another node, 0 to stop: ";
+        cin >> op;
+    } while (op == 1);
+}
+
+void binarytree::insert(node* root, node* temp) {
+    if (temp->data < root->data) {
+        if (root->leftc == NULL)
+            root->leftc = temp;
+        else
+            insert(root->leftc, temp);
+    } else {
+        if (root->rightc == NULL)
+            root->rightc = temp;
+        else
+            insert(root->rightc, temp);
+    }
+}
+
+void binarytree::inorder(node* root) {
+    if (root != NULL) {
+        inorder(root->leftc);
+        cout << root->data << " ";
+        inorder(root->rightc);
+    }
+}
+
+void binarytree::preorder(node* root) {
+    if (root != NULL) {
+        cout << root->data << " ";
+        preorder(root->leftc);
+        preorder(root->rightc);
+    }
+}
+
+void binarytree::postorder(node* root) {
+    if (root != NULL) {
+        postorder(root->leftc);
+        postorder(root->rightc);
+        cout << root->data << " ";
+    }
+}
+
+void binarytree::search(node* root, int value) {
+    if (root == NULL) {
+        cout << "Value " << value << " not found in the tree." << endl;
+        return;
+    }
+    if (root->data == value) {
+        cout << "Value " << value << " found in the tree." << endl;
+    } else if (value < root->data) {
+        search(root->leftc, value);
+    } else {
+        search(root->rightc, value);
+    }
+}
+
+int binarytree::height(node* root) {
+    if (root == NULL)
+        return -1;  // height of an empty tree
+    else {
+        int leftHeight = height(root->leftc);
+        int rightHeight = height(root->rightc);
+        return max(leftHeight, rightHeight) + 1;
+    }
+}
+
+int binarytree::findMin(node* root) {
+    if (root == NULL) {
+        cout << "Tree is empty!" << endl;
+        return -1;
+    }
+    while (root->leftc != NULL)
+        root = root->leftc;
+    return root->data;
+}
+
+node* binarytree::mirror(node* root) {
+    if (root == NULL)
+        return NULL;
+
+    // Swap left and right
+    node* temp = root->leftc;
+    root->leftc = mirror(root->rightc);
+    root->rightc = mirror(temp);
+
+    return root;
+}
+
+int main() {
+    binarytree B;
+    int choice;
+
+    while (1) {
+        cout << "\n\nMENU" << endl;
+        cout << "1. Create BST" << endl;
+        cout << "2. Insert a new node" << endl;
+        cout << "3. Display Inorder" << endl;
+        cout << "4. Display Preorder" << endl;
+        cout << "5. Display Postorder" << endl;
+        cout << "6. Search for a value" << endl;
+        cout << "7. Find height of tree" << endl;
+        cout << "8. Find minimum value" << endl;
+        cout << "9. Mirror the tree" << endl;
+        cout << "10. Exit" << endl;
+        cout << "Enter your choice: ";
+        cin >> choice;
+
+        switch (choice) {
+            case 1:
+            case 2:
+                B.create();
+                break;
+            case 3:
+                cout << "Inorder: ";
+                B.inorder(B.root);
+                break;
+            case 4:
+                cout << "Preorder: ";
+                B.preorder(B.root);
+                break;
+            case 5:
+                cout << "Postorder: ";
+                B.postorder(B.root);
+                break;
+            case 6:
+                int val;
+                cout << "Enter value to search: ";
+                cin >> val;
+                B.search(B.root, val);
+                break;
+            case 7:
+                cout << "Height of tree: " << B.height(B.root) << endl;
+                break;
+            case 8:
+                cout << "Minimum value: " << B.findMin(B.root) << endl;
+                break;
+            case 9:
+                B.root = B.mirror(B.root);
+                cout << "Tree mirrored successfully!" << endl;
+                break;
+            case 10:
+                cout << "Exiting..." << endl;
+                exit(0);
+            default:
+                cout << "Invalid choice!" << endl;
+        }
+    }
+    return 0;
+}
