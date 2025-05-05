@@ -1,0 +1,193 @@
+#include<iostream>
+using namespace std;
+
+#define size 10
+
+class Hashing {
+private:
+    int HT1[size]; // For Linear Probing
+    int HT2[size]; // For Quadratic Probing
+
+public:
+    Hashing() {
+        for(int i = 0; i < size; i++) {
+            HT1[i] = -1;
+            HT2[i] = -1;
+        }
+    }
+
+    // LINEAR PROBING INSERT
+    void insert1(int value) {
+        int address = value % size;
+        int i = 0;
+        while(i < size) {
+            int idx = (address + i) % size;
+            if(HT1[idx] == -1) {
+                HT1[idx] = value;
+                cout << "\nValue inserted at index (Linear): " << idx << "\n";
+                return;
+            }
+            i++;
+        }
+        cout << "\n--- Hash Table Full (Linear Probing) ---\n";
+    }
+
+    // LINEAR SEARCH
+    void search1(int value) {
+        for(int i = 0; i < size; i++) {
+            if(HT1[i] == value) {
+                cout << "Value found at index (Linear): " << i << "\n";
+                return;
+            }
+        }
+        cout << "Value not found in Linear Hash Table.\n";
+    }
+
+    // LINEAR DELETE
+    void delete1(int value) {
+        for(int i = 0; i < size; i++) {
+            if(HT1[i] == value) {
+                HT1[i] = -1;
+                cout << "Value deleted from Linear Hash Table.\n";
+                return;
+            }
+        }
+        cout << "Value not found in Linear Hash Table.\n";
+    }
+
+    // DISPLAY LINEAR TABLE
+    void display1() {
+        cout << "\n--- Linear Hash Table ---\n";
+        for(int i = 0; i < size; i++) {
+            cout << "Index " << i << " : " << HT1[i] << "\n";
+        }
+    }
+
+    // QUADRATIC PROBING INSERT
+    void insert2(int value) {
+        int address = value % size;
+        int i = 0;
+        while(i < size) {
+            int idx = (address + i * i) % size;
+            if(HT2[idx] == -1) {
+                HT2[idx] = value;
+                cout << "\nValue inserted at index (Quadratic): " << idx << "\n";
+                return;
+            }
+            i++;
+        }
+        cout << "\n--- Hash Table Full (Quadratic Probing) ---\n";
+    }
+
+    // QUADRATIC SEARCH
+    void search2(int value) {
+        for(int i = 0; i < size; i++) {
+            if(HT2[i] == value) {
+                cout << "Value found at index (Quadratic): " << i << "\n";
+                return;
+            }
+        }
+        cout << "Value not found in Quadratic Hash Table.\n";
+    }
+
+    // QUADRATIC DELETE
+    void delete2(int value) {
+        for(int i = 0; i < size; i++) {
+            if(HT2[i] == value) {
+                HT2[i] = -1;
+                cout << "Value deleted from Quadratic Hash Table.\n";
+                return;
+            }
+        }
+        cout << "Value not found in Quadratic Hash Table.\n";
+    }
+
+    // DISPLAY QUADRATIC TABLE
+    void display2() {
+        cout << "\n--- Quadratic Hash Table ---\n";
+        for(int i = 0; i < size; i++) {
+            cout << "Index " << i << " : " << HT2[i] << "\n";
+        }
+    }
+};
+
+// MENU FUNCTION
+void displayMENU() {
+    cout << "\n================ MENU ================\n";
+    cout << "1. Insert (Linear Probing)\n";
+    cout << "2. Search (Linear Probing)\n";
+    cout << "3. Delete (Linear Probing)\n";
+    cout << "4. Display (Linear Probing)\n";
+    cout << "5. Insert (Quadratic Probing)\n";
+    cout << "6. Search (Quadratic Probing)\n";
+    cout << "7. Delete (Quadratic Probing)\n";
+    cout << "8. Display (Quadratic Probing)\n";
+    cout << "9. Exit\n";
+    cout << "======================================\n";
+}
+
+int main() {
+    Hashing h;
+    int ch, value;
+
+    while(true) {
+        displayMENU();
+        cout << "Enter your choice: ";
+        cin >> ch;
+
+        switch(ch) {
+            case 1:
+                cout << "Enter value to insert (Linear): ";
+                cin >> value;
+                h.insert1(value);
+                break;
+
+            case 2:
+                cout << "Enter value to search (Linear): ";
+                cin >> value;
+                h.search1(value);
+                break;
+
+            case 3:
+                cout << "Enter value to delete (Linear): ";
+                cin >> value;
+                h.delete1(value);
+                break;
+
+            case 4:
+                h.display1();
+                break;
+
+            case 5:
+                cout << "Enter value to insert (Quadratic): ";
+                cin >> value;
+                h.insert2(value);
+                break;
+
+            case 6:
+                cout << "Enter value to search (Quadratic): ";
+                cin >> value;
+                h.search2(value);
+                break;
+
+            case 7:
+                cout << "Enter value to delete (Quadratic): ";
+                cin >> value;
+                h.delete2(value);
+                break;
+
+            case 8:
+                h.display2();
+                break;
+
+            case 9:
+                cout << "Exiting program. Good luck for your practical!\n";
+                return 0;
+
+            default:
+                cout << "Invalid choice. Try again.\n";
+        }
+    }
+
+    return 0;
+}
