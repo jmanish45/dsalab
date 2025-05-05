@@ -1,0 +1,82 @@
+#include<iostream>
+#include<iomanip>
+#include<string>
+#include<vector>
+using namespace std;
+
+// Depth-First Search function to explore connected cities
+void dfs(int node, vector<vector<int>>& adjMatrix, vector<bool>& visited, int v) {
+    visited[node] = true;
+    for(int i = 0; i < v; i++) {
+        if(adjMatrix[node][i] > 0 && !visited[i]) {
+            dfs(i, adjMatrix, visited, v);
+        }
+    }
+}
+
+int main() {
+    int v, w;
+
+    // Step 1: Input total number of cities
+    cout << "Enter total number of cities: ";
+    cin >> v;
+    cin.ignore();  // to handle newline after integer input
+
+    string cities[v];  // array to store city names
+    vector<vector<int>> adjMatrix(v, vector<int>(v, 0)); // adjacency matrix initialized with 0
+
+    // Step 2: Input city names
+    cout << "Enter city names:\n";
+    for(int i = 0; i < v; i++) {
+        cout << "Enter city " << i + 1 << ": ";
+        getline(cin, cities[i]);
+    }
+
+    // Step 3: Input path cost between cities
+    for(int i = 0; i < v; i++) {
+        for(int j = i+1; j < v; j++) {
+            cout << "Enter 0 if no path, else enter path cost between " << cities[i]
+                 << " and " << cities[j] << ": ";
+            cin >> w;
+            if(w != 0) {
+                adjMatrix[i][j] = adjMatrix[j][i] = w; // undirected edge
+            }
+        }
+    }
+
+    // Step 4: Display adjacency matrix
+    cout << "\nAdjacency Matrix:\n";
+    cout << setw(10) << " ";
+    for(int i = 0; i < v; i++) {
+        cout << setw(10) << cities[i];
+    }
+    cout << endl;
+    for(int i = 0; i < v; i++) {
+        cout << setw(10) << cities[i];
+        for(int j = 0; j < v; j++) {
+            cout << setw(10) << adjMatrix[i][j];
+        }
+        cout << endl;
+    }
+
+    // Step 5: Check if the graph is connected using DFS
+    vector<bool> visited(v, false);
+    dfs(0, adjMatrix, visited, v);
+
+    bool isConnected = true;
+    for(bool visit : visited) {
+        if(!visit) {
+            isConnected = false;
+            break;
+        }
+    }
+
+    // Step 6: Display result
+    if(isConnected) {
+        cout << "\nThe graph is connected.\n";
+    } else {
+        cout << "\nThe graph is NOT connected.\n";
+    }
+
+    return 0;
+}
