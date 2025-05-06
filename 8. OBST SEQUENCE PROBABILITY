@@ -1,0 +1,239 @@
+#include <iostream>        // Includes the header file for input and output stream.
+#include <limits.h>        // Includes the header file for defining INT_MAX.
+using namespace std;       // Tells the compiler to use the standard namespace.
+
+#define SIZE 15            // Defines the maximum size of arrays to be used (15 nodes).
+
+class OBST {               // Define the OBST class for the Optimal Binary Search Tree.
+    int prob[SIZE] = {};   // Array to store the probabilities of nodes, initialized to 0.
+    int keys[SIZE] = {};   // Array to store the keys (nodes) of the OBST, initialized to 0.
+    int weight[SIZE][SIZE] = {};  // 2D array for storing weights, initialized to 0.
+    int cost[SIZE][SIZE] = {};    // 2D array for storing costs, initialized to 0.
+    int root[SIZE][SIZE] = {};    // 2D array for storing root nodes of subtrees, initialized to 0.
+    int n;                  // Integer to store the number of nodes.
+
+public:
+    void get_data();        // Function to take input from the user for nodes and probabilities.
+    int Min_Value(int, int);  // Function to calculate minimum cost for a subtree.
+    void build_OBST();      // Function to construct the optimal binary search tree.
+    void build_tree();      // Function to display the constructed tree.
+    void print(int arr[][SIZE], int); // Function to print a 2D array.
+};
+
+void OBST::get_data() {    // Function to get input from the user.
+    int i;
+    cout << "\nOptimal Binary Search Tree \n\nEnter the number of nodes: ";  // Prompt for number of nodes.
+    cin >> n;               // Take input for number of nodes.
+    cout << "\nEnter " << n << " nodes: ";  // Prompt for nodes.
+    for (i = 1; i <= n; i++)   // Loop through the nodes and take input.
+        cin >> keys[i];        // Store each node in the 'keys' array.
+    cout << "\nEnter " << n << " probabilities: ";  // Prompt for probabilities of each node.
+    for (i = 1; i <= n; i++)   // Loop through the probabilities and take input.
+        cin >> prob[i];        // Store each probability in the 'prob' array.
+}
+
+int OBST::Min_Value(int i, int j) {    // Function to calculate the minimum cost for a subtree between i and j.
+    int l, k;                        // Declare variables to store the loop index and selected root.
+    int minimum = INT_MAX;           // Initialize minimum to maximum possible integer value.
+    for (l = root[i][j - 1]; l <= root[i + 1][j]; l++) {  // Loop through possible roots.
+        if ((cost[i][l - 1] + cost[l][j]) < minimum) {    // Check if the new cost is smaller than the minimum.
+            minimum = cost[i][l - 1] + cost[l][j];  // Update the minimum if a smaller cost is found.
+            k = l;  // Store the root node with the minimum cost.
+        }
+    }
+    return k;    // Return the optimal root for the subtree.
+}
+
+void OBST::build_OBST() {   // Function to construct the optimal binary search tree.
+    int i, j, k, l;  // Declare variables for iteration and root selection.
+    for (i = 0; i < n; i++) {  // Initialize the first row and column of weight, cost, and root matrices.
+        weight[i][i] = root[i][i] = cost[i][i] = 0;  
+        weight[i][i + 1] = cost[i][i + 1] = prob[i + 1];  // Initialize base case with probabilities.
+        root[i][i + 1] = i + 1;  // Initialize base case root.
+    }
+    weight[n][n] = root[n][n] = cost[n][n] = 0;  // Initialize last element for consistency.
+    
+    for (l = 2; l <= n; l++) {  // Loop for different lengths of subtrees (from 2 to n).
+        for (i = 0; i <= n - l; i++) {   // Loop through all possible start indices for subtrees of length l.
+            j = i + l;   // Calculate the end index of the subtree.
+            weight[i][j] = weight[i][j - 1] + prob[j];  // Calculate weight for current subtree.
+            k = Min_Value(i, j);  // Find the optimal root for this subtree.
+            cost[i][j] = weight[i][j] + cost[i][k - 1] + cost[k][j];  // Calculate the total cost of the subtree.
+            root[i][j] = k;  // Store the optimal root for this subtree.
+        }
+    }
+    cout << "\nCost are: \n";  // Display the cost matrix.
+    print(cost, n);  // Call print function to display the cost matrix.
+    cout << "\nRoot are: \n";  // Display the root matrix.
+    print(root, n);  // Call print function to display the root matrix.
+}
+
+void OBST::build_tree() {   // Function to build and display the tree structure.
+    int i, j, k;
+    int queue[20], front = -1, rear = -1;  // Declare queue for level-order traversal of the tree.
+    cout << "\nThe Optimal Binary Search Tree For the Given Nodes Is…\n";  
+    cout << "\nThe Root of this OBST is:: " << keys[root[0][n]];  // Print the root of the OBST.
+    cout << "\nThe Cost of this OBST is:: " << cost[0][n];  // Print the total cost of the OBST.
+    cout << "\n\n\tNODE\tLEFT CHILD\tRIGHT CHILD\n";  // Header for displaying the tree.
+    queue[++rear] = 0;  // Enqueue the start node (0).
+    queue[++rear] = n;  // Enqueue the end node (n).
+    
+    while (front != rear) {  // Traverse the tree in level order.
+        i = queue[++front];  // Dequeue the first node.
+        j = queue[++front];  // Dequeue the second node.
+        k = root[i][j];  // Get the root of the subtree.
+        cout << "\n\t" << keys[k];  // Print the key of the root node.
+        
+        if (root[i][k - 1] != 0) {   // Check if there is a left child.
+            cout << "\t\t" << keys[root[i][k - 1]];  // Print the left child key.
+            queue[++rear] = i;  // Enqueue the start node for the left subtree.
+            queue[++rear] = k - 1;  // Enqueue the end node for the left subtree.
+        } else cout << "\t\t";  // If no left child, print empty space.
+        
+        if (root[k][j] != 0) {   // Check if there is a right child.
+            cout << "\t" << keys[root[k][j]];  // Print the right child key.
+            queue[++rear] = k;  // Enqueue the start node for the right subtree.
+            queue[++rear] = j;  // Enqueue the end node for the right subtree.
+        } else cout << "\t";  // If no right child, print empty space.
+    }
+    cout << "\n";  // Print newline at the end of the tree display.
+}
+
+void OBST::print(int arr[][SIZE], int n) {  // Function to print a 2D array (matrix).
+    int i, j;
+    for (i = 0; i <= n; i++) {  // Loop through rows.
+        for (j = 0; j <= n; j++)  // Loop through columns.
+            cout << arr[i][j] << '\t';  // Print each element in the matrix.
+        cout << '\n';  // Print a newline after each row.
+    }
+}
+
+int main() {  // Main function to execute the program.
+    OBST obj;  // Create an object of the OBST class.
+    int choice;  // Variable to store the user's choice.
+
+    do {  // Menu loop for user interaction.
+        cout << "\n--- Optimal Binary Search Tree Menu ---\n";
+        cout << "1. Enter data for OBST\n";  // Option 1: Input data.
+        cout << "2. Construct Optimal OBST\n";  // Option 2: Construct the OBST.
+        cout << "3. Build and display the tree\n";  // Option 3: Build and display the tree.
+        cout << "4. Exit\n";  // Option 4: Exit the program.
+        cout << "Enter your choice: ";  // Prompt user for their choice.
+        cin >> choice;  // Take input for user's choice.
+
+        switch (choice) {  // Switch case for handling different choices.
+        case 1:
+            obj.get_data();  // Call the function to input data.
+            break;
+        case 2:
+            obj.build_OBST();  // Call the function to construct the OBST.
+            break;
+        case 3:
+            obj.build_tree();  // Call the function to build and display the tree.
+            break;
+        case 4:
+            cout << "Exiting program.\n";  // Exit message.
+            break;
+        default:
+            cout << "Invalid choice. Please try again.\n";  // Error message for invalid choice.
+        }
+    } while (choice != 4);  // Repeat the menu until the user chooses to exit.
+
+    return 0;  // Return 0 to indicate successful execution.
+}
+//////////
+cd path/to/your/file
+g++ filename.cpp -o outputname
+./outputname
+g++ hello.cpp -o hello
+./hello
+sudo apt update
+sudo apt install g++
+///////
+Class Declaration:
+The OBST class is used to model an Optimal Binary Search Tree (OBST).
+
+It contains:
+
+Arrays to store probabilities (prob), keys (keys), weight (weight), cost (cost), and root (root).
+
+An integer n to represent the number of nodes in the OBST.
+
+2. Methods in the OBST Class:
+get_data(): Takes input from the user for the number of nodes, keys (node values), and probabilities (probabilities associated with each key).
+
+Min_Value(i, j): Computes the index of the root node for the subtree using dynamic programming. It helps in finding the minimum cost in building the OBST.
+
+build_OBST(): Constructs the OBST by calculating the cost, weight, and root tables using dynamic programming.
+
+build_tree(): Builds and prints the structure of the OBST, showing the root, left child, and right child for each node in the tree.
+
+print(arr, n): Prints a 2D array (arr) of size n x n.
+
+3. Main Program Flow:
+The main function runs a menu-driven program where the user can:
+
+Enter data for the OBST (option 1).
+
+Construct the OBST (option 2).
+
+Build and display the OBST tree (option 3).
+
+Exit the program (option 4).
+
+4. Explanation of Functions:
+get_data() Function:
+
+Prompts the user to enter the number of nodes (n).
+
+Then, it takes n keys (node values) and their associated probabilities as input.
+
+Min_Value(i, j) Function:
+
+This function calculates the best root node (k) for a given subarray of nodes (from i to j) based on the cost of constructing the tree.
+
+It iterates through possible roots between root[i][j-1] and root[i+1][j] and calculates the cost for each choice. The root that minimizes the cost is selected.
+
+build_OBST() Function:
+
+Initializes the cost and root tables for a single node and for adjacent nodes.
+
+Uses dynamic programming to fill the cost and root tables for larger subtrees.
+
+The outer loop goes through the size of the subtrees (l from 2 to n), and the inner loop iterates through possible subarrays of nodes.
+
+The function calls Min_Value() to find the best root for each subtree and calculates the cost accordingly.
+
+After building the cost and root tables, the function prints them using the print() function.
+
+build_tree() Function:
+
+Builds and prints the structure of the OBST based on the root table.
+
+It uses a queue to perform level-order traversal (Breadth-First Search) of the tree, printing the node, left child, and right child for each node.
+
+The root is printed first, followed by its left and right children recursively.
+
+print(arr, n) Function:
+
+Prints a 2D array (arr) of size n x n. It helps in visualizing the cost and root tables.
+
+5. Menu Options:
+The program continuously asks for input until the user chooses to exit.
+
+Option 1: get_data() to input data.
+
+Option 2: build_OBST() to construct the OBST.
+
+Option 3: build_tree() to display the tree structure.
+
+Option 4: Exit the program.
+
+6. Program Output:
+After entering the data and constructing the OBST, the program prints:
+
+The cost table, showing the cost of constructing the OBST for each subarray of nodes.
+
+The root table, showing the root of the OBST for each subarray.
+
+The structure of the OBST, displaying each node along with its left and right children. 
