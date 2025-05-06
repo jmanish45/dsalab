@@ -1,0 +1,216 @@
+#include <iostream>       // for input and output operations
+#include <fstream>        // for file operations (ifstream, ofstream)
+#include <cstring>        // for string functions (not directly used here but included)
+using namespace std;      // avoid using std:: prefix repeatedly
+
+// Class to store student data
+class Student {
+    int rollNo;               // student roll number
+    char name[50];            // student name (character array)
+    char division;            // division (e.g., A, B, C)
+    char address[100];        // address (character array)
+
+public:
+    void addStudent();        // function to add a student
+    void deleteStudent();     // function to delete a student
+    void displayStudent();    // function to display a student
+};
+
+// Function to add a student to file
+void Student::addStudent() {
+    ofstream fout("students.dat", ios::app | ios::binary);  // open file in append+binary mode
+    Student s;                                              // create student object to take input
+
+    // Accept user input for student details
+    cout << "\nEnter Roll No: ";
+    cin >> s.rollNo;
+    cout << "Enter Name: ";
+    cin.ignore();                       // clear newline from buffer
+    cin.getline(s.name, 50);           // get full name with spaces
+    cout << "Enter Division: ";
+    cin >> s.division;
+    cout << "Enter Address: ";
+    cin.ignore();                      // clear buffer again before getline
+    cin.getline(s.address, 100);       // get full address
+
+    fout.write((char*)&s, sizeof(s));  // write student object to file in binary format
+    fout.close();                      // close file
+
+    cout << "Student record added successfully.\n";  // success message
+}
+
+// Function to delete a student from file
+void Student::deleteStudent() {
+    int roll;                           // roll number to delete
+    bool found = false;                // flag to check if student exists
+    Student s;
+
+    cout << "\nEnter Roll No to delete: ";
+    cin >> roll;
+
+    ifstream fin("students.dat", ios::binary);      // open original file in read mode
+    ofstream fout("temp.dat", ios::binary);         // open temporary file to store filtered data
+
+    // Copy all students except the one to be deleted
+    while (fin.read((char*)&s, sizeof(s))) {
+        if (s.rollNo != roll) {
+            fout.write((char*)&s, sizeof(s));       // write student to temp if not matched
+        } else {
+            found = true;                           // mark student as found
+        }
+    }
+
+    fin.close();                    // close both files
+    fout.close();
+
+    remove("students.dat");         // delete original file
+    rename("temp.dat", "students.dat");  // rename temp file to original name
+
+    // Output based on whether student was found or not
+    if (found)
+        cout << "Student record deleted successfully.\n";
+    else
+        cout << "Student with roll number " << roll << " not found.\n";
+}
+
+// Function to display a specific student by roll number
+void Student::displayStudent() {
+    int roll;
+    bool found = false;
+    Student s;
+
+    cout << "\nEnter Roll No to display: ";
+    cin >> roll;
+
+    ifstream fin("students.dat", ios::binary);  // open file in read mode
+
+    // Search for student with matching roll number
+    while (fin.read((char*)&s, sizeof(s))) {
+        if (s.rollNo == roll) {
+            cout << "\n--- Student Details ---\n";
+            cout << "Roll No: " << s.rollNo << endl;
+            cout << "Name: " << s.name << endl;
+            cout << "Division: " << s.division << endl;
+            cout << "Address: " << s.address << endl;
+            found = true;
+            break;      // stop search after finding
+        }
+    }
+
+    fin.close();    // close file
+
+    if (!found)
+        cout << "Student with roll number " << roll << " not found.\n";
+}
+
+// Main function with menu-driven program
+int main() {
+    Student s;             // student object to call methods
+    int choice;            // menu choice
+
+    do {
+        // Display menu options
+        cout << "\n====== Student Information System ======\n";
+        cout << "1. Add Student\n";
+        cout << "2. Delete Student\n";
+        cout << "3. Display Student\n";
+        cout << "4. Exit\n";
+        cout << "Enter your choice: ";
+        cin >> choice;
+
+        // Switch-case to perform selected operation
+        switch (choice) {
+            case 1: s.addStudent(); break;         // add student
+            case 2: s.deleteStudent(); break;      // delete student
+            case 3: s.displayStudent(); break;     // display student
+            case 4: cout << "Exiting..."; break;   // exit
+            default: cout << "Invalid choice! Try again.\n";  // invalid input
+        }
+    } while (choice != 4);   // repeat until user exits
+
+    return 0;
+}
+///////////
+
+cd path/to/your/file
+g++ filename.cpp -o outputname
+./outputname
+g++ hello.cpp -o hello
+./hello
+sudo apt update
+sudo apt install g++
+
+//////////////
+1. Header Files
+#include <iostream>: For input/output operations.
+
+#include <fstream>: For file handling (reading/writing binary files).
+
+#include <cstring>: Included for string operations (though not used here).
+
+2. Namespace
+using namespace std;: Avoids the need to use std:: prefix.
+
+3. Class Declaration: Student
+Private Data Members:
+
+int rollNo: Stores roll number.
+
+char name[50]: Stores name as a character array.
+
+char division: Stores a single character division.
+
+char address[100]: Stores the address.
+
+Public Member Functions:
+
+addStudent(): Adds a new student record.
+
+deleteStudent(): Deletes a student record based on roll number.
+
+displayStudent(): Displays a student's information by roll number.
+
+4. Function: addStudent()
+Opens students.dat in append and binary mode.
+
+Prompts user for student details and stores them in a temporary object s.
+
+Uses fout.write() to write the object to the file.
+
+Closes the file and confirms the operation.
+
+5. Function: deleteStudent()
+Prompts user to enter roll number to delete.
+
+Opens original file (students.dat) for reading and a temp file (temp.dat) for writing.
+
+Copies all records except the one to be deleted to the temp file.
+
+Closes both files, deletes the original file, and renames the temp file to students.dat.
+
+Displays whether deletion was successful or not.
+
+6. Function: displayStudent()
+Prompts user to enter roll number to search.
+
+Opens students.dat in binary read mode.
+
+Reads all records and checks if roll number matches.
+
+If found, displays student details and exits loop.
+
+If not found, shows an appropriate message.
+
+7. Main Function
+Creates an object s of class Student.
+
+Displays a menu with options: Add, Delete, Display, Exit.
+
+Uses do-while loop to repeat menu until user chooses to exit.
+
+Uses switch to call the appropriate function based on user choice.
+
+8. File Operations
+All file I/O is done in binary format using ofstream and ifstream.
+
+Records are read and written using read() and write() with type casting.
