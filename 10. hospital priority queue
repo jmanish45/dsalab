@@ -1,0 +1,184 @@
+#include <iostream>   // For input/output operations
+#include <string>     // For using string class
+using namespace std;
+
+const int SIZE = 100;  // Maximum size of the patient queue
+
+// Patient class definition
+class Patient {
+    string name;     // Patient's name
+    int priority;    // Priority level (1 = Serious, 2 = Non-Serious, 3 = General Checkup)
+
+public:
+    string getName();                       // Getter for name
+    int getPriority();                      // Getter for priority
+    void setDetails(string n, int p);       // Set patient name and priority
+    void display();                         // Display patient details
+};
+
+// Returns the name of the patient
+string Patient::getName() {
+    return name;
+}
+
+// Returns the priority of the patient
+int Patient::getPriority() {
+    return priority;
+}
+
+// Sets the name and priority of a patient
+void Patient::setDetails(string n, int p) {
+    name = n;
+    priority = p;
+}
+
+// Displays patient name and type based on priority
+void Patient::display() {
+    string type;
+    if (priority == 1)
+        type = "Serious";
+    else if (priority == 2)
+        type = "Non-Serious";
+    else
+        type = "General Checkup";
+
+    cout << "Name: " << name << ", Priority: " << type << endl;
+}
+
+// PriorityQueue class definition
+class PriorityQueue {
+    Patient queue[SIZE];   // Array to store patients
+    int count;             // Number of patients in queue
+
+public:
+    PriorityQueue();                   // Constructor
+    void insert(string name, int priority); // Add new patient
+    void serve();                      // Serve (remove) patient with highest priority
+    void display();                    // Display all patients
+    bool isEmpty();                    // Check if queue is empty
+};
+
+// Constructor initializes count to 0
+PriorityQueue::PriorityQueue() {
+    count = 0;
+}
+
+// Inserts a new patient in sorted order by priority
+void PriorityQueue::insert(string name, int priority) {
+    if (count >= SIZE) {  // Check for queue overflow
+        cout << "Queue is full!" << endl;
+        return;
+    }
+
+    Patient newPatient;
+    newPatient.setDetails(name, priority);  // Set new patient details
+
+    int i = count - 1;
+
+    // Shift patients with lower priority (higher number) to make space
+    while (i >= 0 && queue[i].getPriority() > priority) {
+        queue[i + 1] = queue[i];
+        i--;
+    }
+
+    // Insert the new patient at correct position
+    queue[i + 1] = newPatient;
+    count++;  // Increment the patient count
+
+    cout << "Patient added successfully.\n";
+}
+
+// Removes the highest priority patient (first in queue)
+void PriorityQueue::serve() {
+    if (isEmpty()) {  // If queue is empty
+        cout << "Queue is empty!\n";
+        return;
+    }
+
+    cout << "Serving patient:\n";
+    queue[0].display();  // Display patient being served
+
+    // Shift all patients one position left
+    for (int i = 1; i < count; i++) {
+        queue[i - 1] = queue[i];
+    }
+
+    count--;  // Decrease count as one patient is removed
+}
+
+// Displays all patients in queue
+void PriorityQueue::display() {
+    if (isEmpty()) {
+        cout << "No patients in queue.\n";
+        return;
+    }
+
+    cout << "\n--- Current Patients in Queue (High to Low Priority) ---\n";
+    for (int i = 0; i < count; i++) {
+        queue[i].display();  // Display each patient
+    }
+}
+
+// Returns true if queue is empty
+bool PriorityQueue::isEmpty() {
+    return count == 0;
+}
+
+// Main function for user interaction
+int main() {
+    PriorityQueue pq;  // Create a priority queue object
+    int choice;
+    string name;
+    int priority;
+
+    do {
+        // Menu-driven interface
+        cout << "\n--- Hospital Priority Queue ---\n";
+        cout << "1. Add Patient\n";
+        cout << "2. Serve Patient\n";
+        cout << "3. Display Queue\n";
+        cout << "0. Exit\n";
+        cout << "Enter your choice: ";
+        cin >> choice;
+
+        switch (choice) {
+        case 1:
+            // Get patient details from user
+            cout << "Enter patient name: ";
+            cin.ignore();            // Clear input buffer
+            getline(cin, name);      // Read full name
+            cout << "Enter priority (1 = Serious, 2 = Non-Serious, 3 = General Checkup): ";
+            cin >> priority;
+
+            if (priority < 1 || priority > 3) {
+                cout << "Invalid priority!\n";
+            } else {
+                pq.insert(name, priority);  // Insert into queue
+            }
+            break;
+        case 2:
+            pq.serve();  // Serve the patient with highest priority
+            break;
+        case 3:
+            pq.display();  // Display all patients
+            break;
+        case 0:
+            cout << "Exiting...\n";  // Exit program
+            break;
+        default:
+            cout << "Invalid choice! Try again.\n";  // Handle wrong input
+        }
+    } while (choice != 0);  // Repeat until user chooses to exit
+
+    return 0;  // End of program
+}
+
+///////////
+cd path/to/your/file
+g++ filename.cpp -o outputname
+./outputname
+g++ hello.cpp -o hello
+./hello
+sudo apt update
+sudo apt install g++
+//////////
