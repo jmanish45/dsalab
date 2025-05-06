@@ -1,0 +1,426 @@
+#include <iostream>      // For input-output operations
+#include <string>        // For using the string class
+using namespace std;     // To avoid prefixing std::
+
+class Node {
+public:
+    string keyword, meaning; // Stores dictionary keyword and its meaning
+    Node* left;              // Pointer to left child
+    Node* right;             // Pointer to right child
+    int height;              // Height of the node (for AVL balancing)
+
+    Node(string k, string m); // Constructor declaration
+};
+
+// Constructor to initialize a Node
+Node::Node(string k, string m) {
+    keyword = k;
+    meaning = m;
+    left = right = nullptr;  // Initialize children as null
+    height = 1;              // New node is initially at height 1
+}
+
+// Utility function to return max of two integers
+int max(int a, int b) {
+    return (a > b) ? a : b;
+}
+
+// Class representing the AVL Tree
+class AVLTree {
+private:
+    Node* root; // Root node of the AVL tree
+
+    // Helper methods for AVL operations
+    int getHeight(Node* node);                       // Returns node height
+    int getBalance(Node* node);                      // Returns balance factor
+    Node* rightRotate(Node* y);                      // Performs right rotation
+    Node* leftRotate(Node* x);                       // Performs left rotation
+    Node* insertNode(Node* node, string key, string meaning); // Recursive insert
+    Node* deleteNode(Node* node, string key);        // Recursive delete
+    Node* findMin(Node* node);                       // Finds node with min key
+    Node* update(Node* node, string key, string newMeaning); // Updates a node
+    void inOrder(Node* node);                        // In-order traversal
+    void reverseOrder(Node* node);                   // Reverse in-order traversal
+    bool search(Node* node, string key, int& comparisons); // Search with count
+
+public:
+    AVLTree();                           // Constructor
+    void insert(string key, string meaning);     // Public insert
+    void remove(string key);                     // Public delete
+    void updateMeaning(string key, string newMeaning); // Public update
+    void displayAscending();                     // Display in-order
+    void displayDescending();                    // Display reverse in-order
+    void find(string key);                       // Search wrapper
+};
+
+// Constructor to initialize root to null
+AVLTree::AVLTree() {
+    root = nullptr;
+}
+
+// Returns height of a node or 0 if null
+int AVLTree::getHeight(Node* node) {
+    return node ? node->height : 0;
+}
+
+// Returns balance factor of node (left height - right height)
+int AVLTree::getBalance(Node* node) {
+    return node ? getHeight(node->left) - getHeight(node->right) : 0;
+}
+
+// Performs right rotation and returns new root
+Node* AVLTree::rightRotate(Node* y) {
+    Node* x = y->left;
+    Node* T2 = x->right;
+
+    x->right = y;
+    y->left = T2;
+
+    // Update heights
+    y->height = 1 + max(getHeight(y->left), getHeight(y->right));
+    x->height = 1 + max(getHeight(x->left), getHeight(x->right));
+
+    return x;
+}
+
+// Performs left rotation and returns new root
+Node* AVLTree::leftRotate(Node* x) {
+    Node* y = x->right;
+    Node* T2 = y->left;
+
+    y->left = x;
+    x->right = T2;
+
+    // Update heights
+    x->height = 1 + max(getHeight(x->left), getHeight(x->right));
+    y->height = 1 + max(getHeight(y->left), getHeight(y->right));
+
+    return y;
+}
+
+// Recursive insert that balances the tree
+Node* AVLTree::insertNode(Node* node, string key, string meaning) {
+    if (!node) return new Node(key, meaning); // Insert new node
+
+    // BST insert logic
+    if (key < node->keyword)
+        node->left = insertNode(node->left, key, meaning);
+    else if (key > node->keyword)
+        node->right = insertNode(node->right, key, meaning);
+    else
+        return node; // Duplicate keys not allowed
+
+    // Update height
+    node->height = 1 + max(getHeight(node->left), getHeight(node->right));
+
+    int balance = getBalance(node); // Get balance factor
+
+    // Perform rotations if unbalanced
+    if (balance > 1 && key < node->left->keyword) // Left Left Case
+        return rightRotate(node);
+    if (balance < -1 && key > node->right->keyword) // Right Right Case
+        return leftRotate(node);
+    if (balance > 1 && key > node->left->keyword) { // Left Right Case
+        node->left = leftRotate(node->left);
+        return rightRotate(node);
+    }
+    if (balance < -1 && key < node->right->keyword) { // Right Left Case
+        node->right = rightRotate(node->right);
+        return leftRotate(node);
+    }
+
+    return node;
+}
+
+// Finds the node with minimum key (used in delete)
+Node* AVLTree::findMin(Node* node) {
+    while (node->left)
+        node = node->left;
+    return node;
+}
+
+// Recursive delete function with rebalancing
+Node* AVLTree::deleteNode(Node* node, string key) {
+    if (!node) return nullptr;
+
+    // BST delete logic
+    if (key < node->keyword)
+        node->left = deleteNode(node->left, key);
+    else if (key > node->keyword)
+        node->right = deleteNode(node->right, key);
+    else {
+        // Node with one or no child
+        if (!node->left || !node->right) {
+            Node* temp = node->left ? node->left : node->right;
+            delete node;
+            return temp;
+        } else {
+            // Node with two children
+            Node* temp = findMin(node->right); // In-order successor
+            node->keyword = temp->keyword;
+            node->meaning = temp->meaning;
+            node->right = deleteNode(node->right, temp->keyword);
+        }
+    }
+
+    // Update height
+    node->height = 1 + max(getHeight(node->left), getHeight(node->right));
+    int balance = getBalance(node);
+
+    // Rebalance if needed
+    if (balance > 1 && getBalance(node->left) >= 0)
+        return rightRotate(node);
+    if (balance > 1 && getBalance(node->left) < 0) {
+        node->left = leftRotate(node->left);
+        return rightRotate(node);
+    }
+    if (balance < -1 && getBalance(node->right) <= 0)
+        return leftRotate(node);
+    if (balance < -1 && getBalance(node->right) > 0) {
+        node->right = rightRotate(node->right);
+        return leftRotate(node);
+    }
+
+    return node;
+}
+
+// Recursive function to update meaning of a key
+Node* AVLTree::update(Node* node, string key, string newMeaning) {
+    if (!node) return nullptr;
+
+    if (key < node->keyword)
+        return update(node->left, key, newMeaning);
+    else if (key > node->keyword)
+        return update(node->right, key, newMeaning);
+    else {
+        node->meaning = newMeaning;
+        return node;
+    }
+}
+
+// In-order traversal (ascending order)
+void AVLTree::inOrder(Node* node) {
+    if (node) {
+        inOrder(node->left);
+        cout << node->keyword << " : " << node->meaning << endl;
+        inOrder(node->right);
+    }
+}
+
+// Reverse in-order traversal (descending order)
+void AVLTree::reverseOrder(Node* node) {
+    if (node) {
+        reverseOrder(node->right);
+        cout << node->keyword << " : " << node->meaning << endl;
+        reverseOrder(node->left);
+    }
+}
+
+// Recursive search with comparison count
+bool AVLTree::search(Node* node, string key, int& comparisons) {
+    if (!node) return false;
+    comparisons++;
+    if (key == node->keyword)
+        return true;
+    else if (key < node->keyword)
+        return search(node->left, key, comparisons);
+    else
+        return search(node->right, key, comparisons);
+}
+
+// Wrapper to insert key-meaning pair
+void AVLTree::insert(string key, string meaning) {
+    root = insertNode(root, key, meaning);
+    cout << "Inserted successfully.\n";
+}
+
+// Wrapper to delete a keyword
+void AVLTree::remove(string key) {
+    root = deleteNode(root, key);
+    cout << "Deleted successfully.\n";
+}
+
+// Wrapper to update meaning of a keyword
+void AVLTree::updateMeaning(string key, string newMeaning) {
+    if (update(root, key, newMeaning))
+        cout << "Meaning updated.\n";
+    else
+        cout << "Keyword not found.\n";
+}
+
+// Wrapper to display tree in ascending order
+void AVLTree::displayAscending() {
+    cout << "\n--- Dictionary (Ascending) ---\n";
+    inOrder(root);
+}
+
+// Wrapper to display tree in descending order
+void AVLTree::displayDescending() {
+    cout << "\n--- Dictionary (Descending) ---\n";
+    reverseOrder(root);
+}
+
+// Wrapper to search and display comparison count
+void AVLTree::find(string key) {
+    int comparisons = 0;
+    if (search(root, key, comparisons))
+        cout << "Found in " << comparisons << " comparisons.\n";
+    else
+        cout << "Not found. Comparisons made: " << comparisons << endl;
+}
+
+// Main function with menu-driven dictionary
+int main() {
+    AVLTree dict;
+    int choice;
+    string key, meaning;
+
+    do {
+        cout << "\n--- Dictionary Menu ---\n";
+        cout << "1. Insert\n2. Delete\n3. Update\n4. Display Ascending\n";
+        cout << "5. Display Descending\n6. Search\n0. Exit\nEnter choice: ";
+        cin >> choice;
+        cin.ignore(); // Ignore leftover newline
+
+        switch (choice) {
+            case 1:
+                cout << "Enter keyword: ";
+                getline(cin, key);
+                cout << "Enter meaning: ";
+                getline(cin, meaning);
+                dict.insert(key, meaning);
+                break;
+            case 2:
+                cout << "Enter keyword to delete: ";
+                getline(cin, key);
+                dict.remove(key);
+                break;
+            case 3:
+                cout << "Enter keyword to update: ";
+                getline(cin, key);
+                cout << "Enter new meaning: ";
+                getline(cin, meaning);
+                dict.updateMeaning(key, meaning);
+                break;
+            case 4:
+                dict.displayAscending();
+                break;
+            case 5:
+                dict.displayDescending();
+                break;
+            case 6:
+                cout << "Enter keyword to search: ";
+                getline(cin, key);
+                dict.find(key);
+                break;
+            case 0:
+                cout << "Exiting...\n";
+                break;
+            default:
+                cout << "Invalid choice.\n";
+        }
+    } while (choice != 0);
+
+    return 0;
+}
+/////
+cd path/to/your/file
+g++ filename.cpp -o outputname
+./outputname
+g++ hello.cpp -o hello
+./hello
+sudo apt update
+sudo apt install g++
+/////
+1. Node Class:
+string keyword, meaning; – Stores a word and its meaning.
+
+Node* left, right; – Pointers to left and right children.
+
+int height; – Height of the node for balancing purposes.
+
+Constructor – Initializes a node with keyword, meaning, left = right = nullptr, and height = 1.
+
+ 2. Utility Function:
+max(int a, int b) – Returns the maximum of two integers (used in height calculations).
+
+ 3. AVLTree Class - Private Members:
+Node* root; – Pointer to the root of the AVL tree.
+
+ 4. AVLTree Helper Functions:
+getHeight(Node* node) – Returns the height of a node.
+
+getBalance(Node* node) – Returns the balance factor: height(left) - height(right).
+
+rightRotate(Node* y) – Performs right rotation on unbalanced node y.
+
+leftRotate(Node* x) – Performs left rotation on unbalanced node x.
+
+ 5. Insert Operation:
+insertNode(Node* node, string key, string meaning):
+
+Standard BST insert based on key comparison.
+
+After insert, updates height and checks balance.
+
+Balances the tree using appropriate rotation (LL, RR, LR, RL cases).
+
+ 6. Delete Operation:
+deleteNode(Node* node, string key):
+
+Searches and deletes the node.
+
+Handles 3 cases:
+
+Node with one or no child.
+
+Node with two children – replace with inorder successor.
+
+Rebalances the tree after deletion using rotations.
+
+ 7. Update Meaning:
+update(Node* node, string key, string newMeaning):
+
+Traverses tree to find node with given key.
+
+Updates the meaning if found.
+
+ 8. Traversals:
+inOrder(Node* node) – Displays dictionary in ascending order (LNR).
+
+reverseOrder(Node* node) – Displays dictionary in descending order (RNL).
+
+ 9. Search:
+search(Node* node, string key, int& comparisons):
+
+Searches for the keyword recursively.
+
+Tracks and prints number of comparisons.
+
+10. Public Wrapper Functions:
+insert() – Calls insertNode() on root and confirms insertion.
+
+remove() – Calls deleteNode() on root and confirms deletion.
+
+updateMeaning() – Calls update() and reports result.
+
+displayAscending() – Displays dictionary in sorted order.
+
+displayDescending() – Displays dictionary in reverse order.
+
+find() – Calls search() and prints comparisons.
+
+ 11. Main Menu Interface:
+Provides a looped menu for user interaction:
+
+Insert keyword and meaning
+
+Delete a keyword
+
+Update a keyword’s meaning
+
+Display in ascending/descending order
+
+Search for a keyword
+
+Exit
